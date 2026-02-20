@@ -4,6 +4,7 @@ venv/
 
 # Generated files
 *.npy
+!song_embeddings_fp16.npy
 
 # Old/large data files
 src/spotify_millsongdata.csv
