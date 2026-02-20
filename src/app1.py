@@ -22,10 +22,10 @@ logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(
 
 
 class ImageMusicRecommender:
-    """Optimized image-to-music recommendation system using CLIP embeddings and FAISS."""
+    """ image-to-music recommendation system using CLIP embeddings and FAISS."""
 
-    # --- CHANGED: Default dataset_path is now "music.csv" ---
-    def __init__(self, clip_model_name: str = "openai/clip-vit-base-patch32", embeddings_path: str = "song_embeddings.npy", dataset_path: str = "Music.csv"):
+    # ---   "music.csv" ---
+    def __init__(self, clip_model_name: str = "openai/clip-vit-base-patch32", embeddings_path: str = "song_embeddings_fp16.npy", dataset_path: str = "Music.csv"):
         """Initialize the recommender with CLIP model, dataset, and FAISS index."""
         self.clip_model_name = clip_model_name
         self.clip_model = None
@@ -49,7 +49,7 @@ class ImageMusicRecommender:
         try:
             self.clip_model = CLIPModel.from_pretrained(self.clip_model_name).to(self.device)
             self.processor = CLIPProcessor.from_pretrained(self.clip_model_name)
-            self.clip_model.eval()  # Set CLIP to evaluation mode
+            self.clip_model.eval()  #  CLIP evaluation mode
             logging.info(f"✓ CLIP model loaded successfully on {self.device}")
         except Exception as e:
             logging.error(f"✗ Error loading CLIP model: {e}")
@@ -58,10 +58,10 @@ class ImageMusicRecommender:
 
 
     def _load_dataset(self) -> None:
-        """Load the dataset from a local CSV file."""
+        """Load the dataset from a  CSV file."""
         try:
             if not os.path.exists(self.dataset_path):
-                 # --- CHANGED: Updated error message to match "music.csv" ---
+                 # --- error message to match "music.csv" ---
                  logging.error(f"✗ Error: Dataset file not found at {self.dataset_path}. Please ensure 'music.csv' is in the same directory as your script.")
                  self.music_df = None
                  return
@@ -75,7 +75,7 @@ class ImageMusicRecommender:
 
     @torch.no_grad()
     def _get_image_embedding(self, image_source: Union[str, Path]) -> Optional[np.ndarray]:
-        """Extract normalized image embeddings using CLIP."""
+        """Extracting normalized image embeddings using CLIP."""
         if self.clip_model is None or self.processor is None:
             logging.warning("✗ CLIP Model or processor not loaded")
             return None
@@ -135,7 +135,7 @@ class ImageMusicRecommender:
         
         # --- IMPROVEMENT: Use st.progress for embedding generation if it's slow ---
      
-        # But logging.info is good enough for console-based first-run.
+
         logging.info("Starting text embedding generation...")
         total_batches = (len(texts) + batch_size - 1) // batch_size
         
@@ -148,7 +148,7 @@ class ImageMusicRecommender:
             embeddings = self.clip_model.get_text_features(**inputs)
             embeddings = embeddings / embeddings.norm(p=2, dim=-1, keepdim=True)
             all_embeddings.append(embeddings.cpu())
-            
+            ## vvvvvv  imp 
             if (i // batch_size) % 100 == 0: # Log progress every 100 batches
                 logging.info(f"  Processed batch {i // batch_size} / {total_batches}")
 
@@ -264,7 +264,6 @@ class ImageMusicRecommender:
             st.info("No recommendations to display")
             return
         
-        # ---  Using 'preview' instead of 'link' ---
         cols = ['name', 'artist', 'preview']
         if 'similarity_score' in recommendations.columns:
             cols.append('similarity_score')
@@ -277,24 +276,65 @@ class ImageMusicRecommender:
         display_df = recommendations[cols].reset_index(drop=True)
 
         for idx, row in display_df.iterrows():
-            st.write(f"**{idx + 1}. Song:** {row.get('name', 'N/A')} by {row.get('artist', 'N/A')}")
-            
-            # --- 'preview' instead of 'link' ---
-            song_link = row.get('preview', 'N/A')
-            if pd.isna(song_link) or song_link == 'no' or not song_link:
-                 st.write("   Link: Not Available")
-            else:
-                 # Assuming the link is a valid URL
-                 st.write(f"   Link: [Listen Here]({song_link})")
-
-            if 'similarity_score' in row:
-                st.write(f"   Score: {row['similarity_score']:.4f}")
+            with st.container():
+                st.markdown(f"### {idx + 1}. {row.get('name', 'N/A')}")
+                st.markdown(f"**Artist:** {row.get('artist', 'N/A')}")
+                
+                if 'similarity_score' in row:
+                    st.caption(f"Match Score: {row['similarity_score']:.4f}")
+                    
+                song_link = row.get('preview', 'N/A')
+                if pd.isna(song_link) or song_link == 'no' or not song_link:
+                     st.write("🔇 *Preview not available*")
+                else:
+                     st.audio(song_link, format='audio/mp3')
             st.markdown("---")
 
-# --- Streamlit App Layout ---
-st.title("Image to Music Recommender 🎶")
+# --- UI Styling ---
+st.set_page_config(page_title="PictoMusic 🎶", page_icon="🎵", layout="centered")
 
-st.write("Upload an image or provide an image URL to get music recommendations.")
+st.markdown("""
+<style>
+    #MainMenu {visibility: hidden;}
+    header {visibility: hidden;}
+    footer {visibility: hidden;}
+    
+    .stApp {
+        background-color: #0e1117;
+        color: #fafafa;
+    }
+    
+    /* Sleek container for main content */
+    .block-container {
+        padding-top: 2rem;
+        padding-bottom: 2rem;
+        max-width: 800px;
+    }
+    
+    /* Title styling */
+    h1 {
+        font-family: 'Inter', sans-serif;
+        font-weight: 800;
+        background: -webkit-linear-gradient(45deg, #1DB954, #1ed760);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        text-align: center;
+        margin-bottom: 0.5rem;
+    }
+    
+    /* Subtitle styling */
+    .subtitle {
+        text-align: center;
+        color: #a0a0a0;
+        font-size: 1.1rem;
+        margin-bottom: 2rem;
+    }
+</style>
+""", unsafe_allow_html=True)
+
+# --- Streamlit App Layout ---
+st.markdown("<h1>PictoMusic 🎶</h1>", unsafe_allow_html=True)
+st.markdown("<p class='subtitle'>Upload an image to discover the perfect soundtrack.</p>", unsafe_allow_html=True)
 
 # Option to upload file or provide URL
 image_source_option = st.radio(
@@ -343,7 +383,7 @@ if st.button("Get Music Recommendations") and image_source is not None:
             st.subheader("Top Recommendations:")
             recommender.display_recommendations(recommendations)
         else:
-            # This can happen if .recommend() fails or returns an empty df
+            # This  happens if .recommend() fails or returns an empty df
             st.info("No recommendations found.")
     else:
         st.error("Recommender not initialized properly. Check console logs for errors (like 'music.csv' not found).")
