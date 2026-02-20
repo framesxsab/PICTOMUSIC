@@ -24,15 +24,14 @@ logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(
 class ImageMusicRecommender:
     """ image-to-music recommendation system using CLIP embeddings and FAISS."""
 
-    # ---   "music.csv" ---
     def __init__(self, clip_model_name: str = "openai/clip-vit-base-patch32", embeddings_path: str = "song_embeddings_fp16.npy", dataset_path: str = "Music.csv"):
         """Initialize the recommender with CLIP model, dataset, and FAISS index."""
         self.clip_model_name = clip_model_name
         self.clip_model = None
         self.processor = None
         self.music_df = None
-        self.song_description_embeddings_clip = None # CLIP text embeddings of song descriptions
-        self.index = None  # FAISS index attribute
+        self.song_description_embeddings_clip = None
+        self.index = None
         self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         self.embeddings_path = embeddings_path
         self.dataset_path = dataset_path
@@ -40,8 +39,8 @@ class ImageMusicRecommender:
 
         self._load_models()
         self._load_dataset()
-        self._load_or_generate_embeddings() # Load or generate CLIP text embeddings for song descriptions
-        self._build_faiss_index() # Build FAISS index on song description embeddings
+        self._load_or_generate_embeddings()
+        self._build_faiss_index()
 
 
     def _load_models(self) -> None:
@@ -49,7 +48,7 @@ class ImageMusicRecommender:
         try:
             self.clip_model = CLIPModel.from_pretrained(self.clip_model_name).to(self.device)
             self.processor = CLIPProcessor.from_pretrained(self.clip_model_name)
-            self.clip_model.eval()  #  CLIP evaluation mode
+            self.clip_model.eval()
             logging.info(f"✓ CLIP model loaded successfully on {self.device}")
         except Exception as e:
             logging.error(f"✗ Error loading CLIP model: {e}")
@@ -61,7 +60,6 @@ class ImageMusicRecommender:
         """Load the dataset from a  CSV file."""
         try:
             if not os.path.exists(self.dataset_path):
-                 # --- error message to match "music.csv" ---
                  logging.error(f"✗ Error: Dataset file not found at {self.dataset_path}. Please ensure 'music.csv' is in the same directory as your script.")
                  self.music_df = None
                  return
@@ -81,9 +79,7 @@ class ImageMusicRecommender:
             return None
 
         try:
-            # Handle Streamlit UploadedFile object
             if hasattr(image_source, 'seek') and hasattr(image_source, 'read'):
-                 # Save uploaded file to a temporary location to get a path
                  with tempfile.NamedTemporaryFile(delete=False, suffix=Path(image_source.name).suffix) as tmp:
                      tmp.write(image_source.getvalue())
                      image_path = tmp.name
@@ -102,7 +98,6 @@ class ImageMusicRecommender:
                 image = Image.open(tmp_path).convert("RGB")
                 os.unlink(tmp_path)
             else:
-                # Assume it's a local file path
                 image = Image.open(image_path).convert("RGB")
 
 
@@ -112,7 +107,6 @@ class ImageMusicRecommender:
             features = self.clip_model.get_image_features(**inputs)
             features = features / features.norm(p=2, dim=-1, keepdim=True)
 
-            # Clean up temporary file if created from UploadedFile
             if hasattr(image_source, 'seek') and hasattr(image_source, 'read'):
                  os.unlink(image_path)
 
@@ -120,7 +114,6 @@ class ImageMusicRecommender:
 
         except Exception as e:
             logging.error(f"✗ Error processing image: {e}")
-            # Clean up temporary file if created from UploadedFile
             if hasattr(image_source, 'seek') and hasattr(image_source, 'read') and 'image_path' in locals() and os.path.exists(image_path):
                  os.unlink(image_path)
             return None
@@ -132,9 +125,6 @@ class ImageMusicRecommender:
             return None
 
         all_embeddings = []
-        
-        # --- IMPROVEMENT: Use st.progress for embedding generation if it's slow ---
-     
 
         logging.info("Starting text embedding generation...")
         total_batches = (len(texts) + batch_size - 1) // batch_size
@@ -148,8 +138,8 @@ class ImageMusicRecommender:
             embeddings = self.clip_model.get_text_features(**inputs)
             embeddings = embeddings / embeddings.norm(p=2, dim=-1, keepdim=True)
             all_embeddings.append(embeddings.cpu())
-            ## vvvvvv  imp 
-            if (i // batch_size) % 100 == 0: # Log progress every 100 batches
+
+            if (i // batch_size) % 100 == 0:
                 logging.info(f"  Processed batch {i // batch_size} / {total_batches}")
 
 
@@ -218,7 +208,7 @@ class ImageMusicRecommender:
         logging.info("Building FAISS index on song description embeddings...")
         try:
             dimension = self.song_description_embeddings_clip.shape[1]
-            self.index = faiss.IndexFlatIP(dimension) # Using Inner Product (cosine similarity on normalized vectors)
+            self.index = faiss.IndexFlatIP(dimension)
             self.index.add(self.song_description_embeddings_clip.astype('float32'))
             logging.info(f"✓ FAISS index built with {self.index.ntotal} vectors.")
         except Exception as e:
@@ -243,9 +233,8 @@ class ImageMusicRecommender:
             return pd.DataFrame()
 
         try:
-            # Search the FAISS index
             distances, indices = self.index.search(img_emb.astype('float32'), top_k)
-            similarities = distances[0] # For IndexFlatIP, distance is inner product (similarity)
+            similarities = distances[0]
 
             results = self.music_df.iloc[indices[0]].copy()
 
@@ -363,19 +352,14 @@ elif image_source_option == "Image URL":
 
 # Button to trigger recommendation
 if st.button("Get Music Recommendations") and image_source is not None:
-    
-    # Initialize the recommender - Use caching to avoid reloading models on every interaction
     @st.cache_resource(show_spinner=False)
     def get_recommender():
         logging.info("Initializing recommender...")
-        # Ensure music.csv and (optionally) song_embeddings.npy are in the same directory
         return ImageMusicRecommender()
 
     recommender = get_recommender()
 
     if recommender.music_df is not None and recommender.index is not None and recommender.clip_model is not None and recommender.processor is not None:
-        
-        # This spinner will now be the only one that shows
         with st.spinner("Analyzing image and finding matching songs... 🎵"):
             recommendations = recommender.recommend(image_source, top_k=10)
         
@@ -383,7 +367,6 @@ if st.button("Get Music Recommendations") and image_source is not None:
             st.subheader("Top Recommendations:")
             recommender.display_recommendations(recommendations)
         else:
-            # This  happens if .recommend() fails or returns an empty df
             st.info("No recommendations found.")
     else:
         st.error("Recommender not initialized properly. Check console logs for errors (like 'music.csv' not found).")
