@@ -24,17 +24,20 @@ logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(
 class ImageMusicRecommender:
     """ image-to-music recommendation system using CLIP embeddings and FAISS."""
 
-    def __init__(self, clip_model_name: str = "openai/clip-vit-base-patch32", embeddings_path: str = "song_embeddings_fp16.npy", dataset_path: str = "Music.csv"):
+    def __init__(self, clip_model_name: str = "openai/clip-vit-base-patch32", embeddings_path: Optional[str] = None, dataset_path: Optional[str] = None):
         """Initialize the recommender with CLIP model, dataset, and FAISS index."""
         self.clip_model_name = clip_model_name
+        
+        # Robust path resolution
+        base_dir = Path(__file__).parent.parent
+        self.embeddings_path = embeddings_path if embeddings_path else str(base_dir / "song_embeddings_fp16.npy")
+        self.dataset_path = dataset_path if dataset_path else str(base_dir / "Music.csv")
         self.clip_model = None
         self.processor = None
         self.music_df = None
         self.song_description_embeddings_clip = None
         self.index = None
         self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-        self.embeddings_path = embeddings_path
-        self.dataset_path = dataset_path
 
 
         self._load_models()
@@ -369,4 +372,8 @@ if st.button("Get Music Recommendations") and image_source is not None:
         else:
             st.info("No recommendations found.")
     else:
-        st.error("Recommender not initialized properly. Check console logs for errors (like 'music.csv' not found).")
+        missing = []
+        if recommender.music_df is None: missing.append("Dataset (Music.csv)")
+        if recommender.index is None: missing.append("Embeddings (song_embeddings_fp16.npy)")
+        if recommender.clip_model is None or recommender.processor is None: missing.append("CLIP Model/Processor")
+        st.error(f"Recommender failing to start. Missing components: {', '.join(missing)}. Please check the app logs.")
