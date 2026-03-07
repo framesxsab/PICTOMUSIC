@@ -561,7 +561,14 @@ section[data-testid="stSidebar"] .stRadio label:hover {
 [data-testid="stFileUploader"] section,
 [data-testid="stFileUploader"] section > *,
 [data-testid="stFileUploader"] section > div,
-[data-testid="stFileUploader"] section > div > div,
+[data-testid="stFileUploader"] section > div > div {
+    background: transparent !important;
+    background-color: transparent !important;
+    color: var(--text-secondary) !important;
+    border-color: transparent !important;
+    border: none !important;
+}
+
 [data-testid="stFileUploadDropzone"],
 [data-testid="stFileUploadDropzone"] > * {
     background: var(--bg-card) !important;
@@ -580,12 +587,37 @@ section[data-testid="stSidebar"] .stRadio label:hover {
     border-radius: 1.25rem !important;
     transition: all 0.3s ease !important;
     background-color: rgba(79, 6, 249, 0.04) !important;
+    padding: 2.5rem 1.5rem !important;
 }
 
 [data-testid="stFileUploadDropzone"]:hover {
     border-color: var(--primary) !important;
     box-shadow: 0 0 24px rgba(79, 6, 249, 0.15) !important;
     background-color: rgba(79, 6, 249, 0.08) !important;
+}
+
+/* Hide default uploader text, replace via CSS */
+[data-testid="stFileUploadDropzone"] > div:first-child > div:first-child > span {
+    font-size: 0 !important;
+}
+
+[data-testid="stFileUploadDropzone"] > div:first-child > div:first-child > span::after {
+    content: '🖼️  Drop your image here or browse' !important;
+    font-size: 0.95rem !important;
+    font-weight: 600 !important;
+    color: var(--text-secondary) !important;
+    letter-spacing: 0.01em !important;
+}
+
+[data-testid="stFileUploadDropzone"] > div:first-child > div:first-child > small {
+    font-size: 0 !important;
+}
+
+[data-testid="stFileUploadDropzone"] > div:first-child > div:first-child > small::after {
+    content: 'JPG, PNG, WEBP — Max 10 MB' !important;
+    font-size: 0.7rem !important;
+    color: var(--text-muted) !important;
+    font-weight: 500 !important;
 }
 
 [data-testid="stFileUploader"] label,
@@ -658,14 +690,50 @@ section[data-testid="stSidebar"] .stRadio label:hover {
     transform: translateY(0) scale(0.98) !important;
 }
 
-/* Radio buttons */
+/* Radio buttons — pill style */
 .stRadio > div {
     background: transparent !important;
+    gap: 0.35rem !important;
 }
 
-.stRadio label {
+.stRadio > label {
+    display: none !important;
+}
+
+.stRadio [role="radiogroup"] {
+    gap: 0.35rem !important;
+}
+
+.stRadio [role="radiogroup"] label {
+    background: rgba(79, 6, 249, 0.06) !important;
+    border: 1px solid var(--glass-border) !important;
+    border-radius: 0.75rem !important;
+    padding: 0.6rem 1rem !important;
     color: var(--text-secondary) !important;
-    font-weight: 500 !important;
+    font-weight: 600 !important;
+    font-size: 0.85rem !important;
+    cursor: pointer !important;
+    transition: all 0.25s ease !important;
+    margin: 0 !important;
+}
+
+.stRadio [role="radiogroup"] label:hover {
+    background: rgba(79, 6, 249, 0.12) !important;
+    border-color: var(--border-glow) !important;
+    color: var(--text-primary) !important;
+}
+
+.stRadio [role="radiogroup"] label[data-checked="true"],
+.stRadio [role="radiogroup"] label:has(input:checked) {
+    background: var(--primary-dim) !important;
+    border-color: var(--primary) !important;
+    color: var(--primary) !important;
+    box-shadow: 0 0 12px rgba(79, 6, 249, 0.2) !important;
+}
+
+.stRadio [role="radiogroup"] label div[data-testid="stMarkdownContainer"] p {
+    font-size: 0.85rem !important;
+    font-weight: 600 !important;
 }
 
 /* Spinner */
