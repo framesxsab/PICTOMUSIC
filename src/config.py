@@ -58,17 +58,10 @@ FEATURE_DESCRIPTORS = [
     ("speechiness",       0.3, 0.7, "",                      "spoken word"),
 ]
 
-APP_TITLE = "PictoMusic 🎶"
+APP_TITLE = "Pictomusic"
 APP_ICON = "🎵"
-APP_SUBTITLE = "Upload an image to discover the perfect soundtrack."
-
-UI_BG_COLOR = "#0e1117"
-UI_TEXT_COLOR = "#fafafa"
-UI_SUBTITLE_COLOR = "#a0a0a0"
-UI_GRADIENT_START = "#1DB954"
-UI_GRADIENT_END = "#1ed760"
-UI_FONT_FAMILY = "'Inter', sans-serif"
-UI_MAX_WIDTH = "800px"
+APP_SUBTITLE = "Upload an image to discover the perfect soundtrack"
+APP_VERSION_TAG = "v3.0 Neural Core Active"
 
 
 def validate_image_url(url: str) -> str:
