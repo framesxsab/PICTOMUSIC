@@ -2,6 +2,9 @@
 .venv/
 venv/
 
+# Environment secrets
+.env
+
 # Generated files
 *.npy
 !song_embeddings_fp16.npy
