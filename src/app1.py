@@ -876,6 +876,24 @@ hr {
     pointer-events: none;
     z-index: -1;
 }
+
+/* Mobile optimizations to reduce scroll lag */
+@media (max-width: 768px) {
+    .glass-card, .song-card, .stat-card {
+        backdrop-filter: none !important;
+        -webkit-backdrop-filter: none !important;
+        box-shadow: none !important;
+    }
+    .hero-glow::before {
+        display: none !important;
+    }
+    .score-bar-fill {
+        box-shadow: none !important;
+    }
+    audio {
+        filter: none !important;
+    }
+}
 </style>
 """
 
