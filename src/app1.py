@@ -947,7 +947,7 @@ st.markdown(
     unsafe_allow_html=True,
 )
 
-st.markdown(f'<h1 class="hero-title">WHERE SOUND<br>BECOMES SIGHT</h1>', unsafe_allow_html=True)
+st.markdown(f'<h1 class="hero-title">WHERE SIGHT<br>BECOMES SOUND</h1>', unsafe_allow_html=True)
 st.markdown(f'<p class="hero-subtitle">{escape_html(APP_SUBTITLE)}</p>', unsafe_allow_html=True)
 
 st.markdown("<br>", unsafe_allow_html=True)
