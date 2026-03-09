@@ -1,10 +1,14 @@
 FROM python:3.11-slim
-# Build: 2026-03-10 v2 -- force rebuild with XSRF disabled
+# Build: 2026-03-10 v3 -- set XSRF/CORS via ENV
 
 # Create a new user with UID 1000
 RUN useradd -m -u 1000 user
 ENV HOME=/home/user \
-    PATH=/home/user/.local/bin:$PATH
+    PATH=/home/user/.local/bin:$PATH \
+    STREAMLIT_SERVER_ENABLE_XSRF_PROTECTION=false \
+    STREAMLIT_SERVER_ENABLE_CORS=false \
+    STREAMLIT_SERVER_FILE_WATCHER_TYPE=none \
+    STREAMLIT_BROWSER_GATHER_USAGE_STATS=false
 
 WORKDIR $HOME/app
 
