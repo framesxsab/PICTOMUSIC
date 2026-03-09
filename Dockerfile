@@ -28,4 +28,4 @@ COPY --chown=user:user . .
 EXPOSE 7860
 
 # HF Spaces expects port 7860
-CMD ["streamlit", "run", "src/app1.py", "--server.port=7860", "--server.address=0.0.0.0", "--server.fileWatcherType=none", "--browser.gatherUsageStats=false"]
+CMD ["streamlit", "run", "src/app1.py", "--server.port=7860", "--server.address=0.0.0.0", "--server.enableCORS=false", "--server.enableXsrfProtection=false", "--server.fileWatcherType=none", "--browser.gatherUsageStats=false"]
