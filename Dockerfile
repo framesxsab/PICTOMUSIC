@@ -1,18 +1,28 @@
 FROM python:3.11-slim
 
-WORKDIR /app
+# Create a new user with UID 1000
+RUN useradd -m -u 1000 user
+ENV HOME=/home/user \
+    PATH=/home/user/.local/bin:$PATH
 
-# Install system dependencies
+WORKDIR $HOME/app
+
+# Install system dependencies as root
 RUN apt-get update && \
     apt-get install -y --no-install-recommends git git-lfs && \
     rm -rf /var/lib/apt/lists/*
 
-# Copy requirements first for better caching
-COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
+# Copy requirements file first, setting correct ownership
+COPY --chown=user:user requirements.txt .
 
-# Copy the rest of the app
-COPY . .
+# Switch to the non-root user
+USER user
+
+# Install python dependencies to the user's local directory
+RUN pip install --user --no-cache-dir -r requirements.txt
+
+# Copy the rest of the application files with user ownership
+COPY --chown=user:user . .
 
 # Expose Streamlit's default port
 EXPOSE 7860
