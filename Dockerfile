@@ -1,4 +1,5 @@
 FROM python:3.11-slim
+# Build: 2026-03-10 v2 -- force rebuild with XSRF disabled
 
 # Create a new user with UID 1000
 RUN useradd -m -u 1000 user
